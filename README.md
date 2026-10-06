@@ -1,6 +1,4 @@
-# finm37000-group15
-
-Group 15 project for FINM 37000: Futures and Related Derivatives.
+# Group 15 project for FINM 37000: Futures and Related Derivatives.
 
 ## Goal
 
@@ -15,7 +13,7 @@ Using top-of-book data for the ESZ6 contract, we will:
 
 "No edge after costs" is an acceptable outcome; we will report whatever we find.
 
-The issues build on each other in this order: data access (#1–#3) → scope (#4) → data loader (#5) → features and labels (#6, #7) → evaluation (#8) → trading simulation (#9) → results and write-up (#10), with an optional regime breakdown (#11).
+The issues build on each other in this order: setup and data access (#1–#3) → scope (#4) → data loader (#5) → features and labels (#6, #7) → evaluation (#8) → trading simulation (#9) → results and write-up (#10), with an optional regime breakdown (#11).
 
 ## Scope
 
@@ -23,7 +21,7 @@ The scope is proposed in #4 and is final once agreed there.
 
 - **Contract:** ESZ6 (December 2026 E-mini S&P 500). Tick size is 0.25 points, or $12.50 per contract.
 - **Data:** Databento `GLBX.MDP3`, `mbp-1` (top of book plus trades).
-- **Window:** 2–3 consecutive regular sessions, 8:30–15:00 CT. Dates are still to be agreed.
+- **Window:** 2–3 consecutive regular sessions, 8:30–15:00 CT, after the September roll so ESZ6 is the liquid front-month contract. Exact dates are still to be agreed.
 - **Horizons:** 1s, 5s, 10s.
 
 ## Data
@@ -63,4 +61,5 @@ These instructions describe how the finished project will run. They will be upda
 data/        local data cache (not committed)
 notebooks/   analysis and results notebooks
 src/         loader, features, labels, evaluation, simulation
+results/     saved plots and results tables
 ```
