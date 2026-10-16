@@ -27,8 +27,8 @@ def test_no_lookahead():
 
     # Add a trade that happens later in the future
     future_time = pd.Timestamp(
-        "2026-09-24 08:30:10.200",
-        tz="America/Chicago"
+    "2026-09-24 08:30:03.200",
+    tz="America/Chicago"
     )
 
     future_event = pd.DataFrame({
