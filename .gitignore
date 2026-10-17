@@ -218,3 +218,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Market data and macOS files (issue #2)
+data/*
+!data/README.md
+*.parquet
+*.dbn
+*.dbn.zst
+.DS_Store
