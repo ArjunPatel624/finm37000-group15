@@ -1,1 +1,13 @@
-# Python dependencies will be added as the project develops.
+# Python dependencies for the ES order-flow project.
+# Lower bounds are the versions the team code was tested with (Python 3.12).
+#
+# Install the course package first (not on PyPI):
+#   pip install git+https://github.com/pattersonem/finm37000-autumn-2026
+# Then: pip install -r requirements.txt
+
+databento>=0.87.0   # Databento Historical client (data loader)
+pandas>=3.0.6       # features, labels, loader
+numpy>=2.5.3        # features
+pyarrow>=25.0.1     # parquet cache for the loader
+scikit-learn>=1.9.1 # logistic/ridge models in evaluation (#8, PR #18)
+pytest>=9.1.1       # test suite
