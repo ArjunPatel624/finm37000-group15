@@ -144,96 +144,13 @@ def test_prepare_binary_labels():
     result = prepare_binary_labels(labels)
 
     # Flat and missing labels should be removed
-    assert result.index.tolist() == [10, 12, 13, 14][1:] + [10] if False else [10, 12, 13, 14]
+    assert result.index.tolist() == [10, 12, 13, 14]
 
     # Down becomes 0, up becomes 1
     assert result.tolist() == [0, 1, 0, 1]
 
     # Retain the original observation indices
     assert result.name == "direction"
-
-def evaluate_horizons(
-    features: pd.DataFrame,
-    labels: pd.DataFrame,
-    horizons=(1, 5, 10),
-) -> pd.DataFrame:
-    """
-    Evaluate order-flow prediction for each forecast horizon.
-
-    Train on earlier days and test on the final day.
-    Flat-price observations are excluded from the binary analysis.
-
-    Returns accuracy, AUC, and forward-return correlation
-    for both logistic regression and the majority baseline.
-    """
-    results = []
-
-    for h in horizons:
-        y_col = f"y_{h}s"
-        return_col = f"dmid_{h}s"
-
-        # Align feature observations with forward labels and returns
-        data = features.join(
-            labels[[y_col, return_col]],
-            how="inner",
-        ).dropna()
-
-        # Keep up/down observations, excluding flat moves
-        binary_labels = prepare_binary_labels(data[y_col])
-        data = data.loc[binary_labels.index].copy()
-        data["binary_target"] = binary_labels
-
-        # Split chronologically by trading day
-        train, test = split_train_test_by_day(data)
-
-        feature_cols = list(features.columns)
-
-        X_train = train[feature_cols]
-        y_train = train["binary_target"]
-
-        X_test = test[feature_cols]
-        y_test = test["binary_target"]
-
-        forward_returns = test[return_col]
-
-        # Majority-class baseline
-        baseline_pred = majority_class_baseline(
-            y_train, y_test
-        )
-
-        baseline_results = evaluate_predictions(
-            y_test,
-            baseline_pred,
-            baseline_pred.astype(float),
-            forward_returns,
-        )
-
-        # Logistic regression
-        model_pred, model_prob = fit_logistic_regression(
-            X_train, y_train, X_test
-        )
-
-        model_results = evaluate_predictions(
-            y_test,
-            model_pred,
-            model_prob,
-            forward_returns,
-        )
-
-        # Store results for both approaches
-        for name, metrics in [
-            ("Majority baseline", baseline_results),
-            ("Logistic regression", model_results),
-        ]:
-            results.append({
-                "horizon": f"{h}s",
-                "model": name,
-                "train_samples": len(train),
-                "test_samples": len(test),
-                **metrics,
-            })
-
-    return pd.DataFrame(results)
 
 def test_evaluate_horizons():
     """Evaluate three horizons using chronological synthetic data."""
