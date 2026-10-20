@@ -59,10 +59,19 @@ def build_features(
     """
     Build order-flow features on a one-second time grid.
 
-    Each timestamp t uses only observations at or before t.
-    Input should contain one trading session with a
-    timezone-aware DatetimeIndex.
+    Each row labeled t uses only market events with timestamps
+    at or before t, preventing look-ahead bias.
+
+    Rolling signed volume and trade count use trailing windows
+    of window_seconds. With min_periods=1, the first few
+    seconds of a session use partial windows rather than NaN.
+
+    Input must have a timezone-aware DatetimeIndex and contain
+    one trading session. For multiple days, call build_features()
+    separately for each session and concatenate the results
+    to avoid rolling calculations spanning overnight gaps.
     """
+
     if window_seconds < 1:
         raise ValueError("window_seconds must be positive")
 
