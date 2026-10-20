@@ -11,7 +11,8 @@ from orderflow.evaluation import (
     prepare_binary_labels,
     evaluate_horizons,
     fit_ridge_regression,
-    evaluate_regression_predictions
+    evaluate_regression_predictions,
+    block_bootstrap_accuracy_difference
 )
 
 
@@ -327,3 +328,30 @@ def test_evaluate_regression_predictions():
     assert np.isclose(metrics["mae"], 1 / 3)
     assert np.isclose(metrics["rmse"], np.sqrt(1 / 6))
     assert np.isclose(metrics["correlation"], 1.0)
+
+
+def test_block_bootstrap_accuracy_difference():
+    """Check paired one-minute block bootstrap calculations."""
+    times = pd.to_datetime([
+        "2026-09-24 08:30:00",
+        "2026-09-24 08:30:01",
+        "2026-09-24 08:31:00",
+        "2026-09-24 08:31:01",
+    ]).tz_localize("America/Chicago")
+
+    y_true = pd.Series([0, 1, 0, 1], index=times)
+    baseline = pd.Series([0, 0, 0, 0], index=times)
+    model = pd.Series([0, 1, 0, 1], index=times)
+
+    results = block_bootstrap_accuracy_difference(
+        y_true,
+        baseline,
+        model,
+        n_bootstrap=100,
+        seed=42,
+    )
+
+    assert results["n_blocks"] == 2
+    assert np.isclose(results["accuracy_difference"], 0.5)
+    assert np.isclose(results["ci_lower"], 0.5)
+    assert np.isclose(results["ci_upper"], 0.5)

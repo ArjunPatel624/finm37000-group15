@@ -66,10 +66,15 @@ def majority_class_baseline(
     """
     Predict the most common training label for every test observation.
 
-    Labels:
+        Labels:
         1 = upward price movement
-        0 = downward or non-upward price movement
+        0 = downward price movement
 
+    Flat-price movements are excluded before this function
+    is called in the binary evaluation.
+
+    If the training classes are equally frequent, the
+    baseline deterministically predicts class 0 (down).
     The test labels are never used to choose the prediction.
     """
     if y_train.empty:
@@ -78,7 +83,8 @@ def majority_class_baseline(
     if not y_train.isin([0, 1]).all():
         raise ValueError("Training labels must be binary (0 or 1)")
 
-    # Identify the majority class using training data only
+    # Identify the majority class using training data only.
+    # In a tie, pandas mode returns [0, 1], so select 0.
     majority_class = int(y_train.mode().iloc[0])
 
     # Predict that class for every test observation
@@ -344,4 +350,135 @@ def evaluate_regression_predictions(
         "mae": mae,
         "rmse": rmse,
         "correlation": correlation,
+    }
+
+
+def block_bootstrap_accuracy_difference(
+    y_true: pd.Series,
+    baseline_predictions: pd.Series,
+    model_predictions: pd.Series,
+    n_bootstrap: int = 2000,
+    seed: int = 42,
+) -> dict:
+    """
+    Estimate uncertainty in the model's accuracy improvement.
+
+    Resample paired observations in one-minute time blocks,
+    preserving the ordering and dependence within each block.
+    Models are not refitted during this test-set bootstrap.
+    """
+    if not (
+        y_true.index.equals(baseline_predictions.index)
+        and y_true.index.equals(model_predictions.index)
+    ):
+        raise ValueError("Inputs must have matching indices")
+
+    if y_true.empty:
+        raise ValueError("Evaluation data cannot be empty")
+
+    if not isinstance(y_true.index, pd.DatetimeIndex):
+        raise ValueError("Expected a DatetimeIndex")
+
+    if y_true.index.tz is None:
+        raise ValueError("Expected timezone-aware timestamps")
+
+    if n_bootstrap < 1:
+        raise ValueError("n_bootstrap must be positive")
+
+    data = pd.DataFrame({
+        "baseline_correct": (
+            baseline_predictions == y_true
+        ).astype(float),
+        "model_correct": (
+            model_predictions == y_true
+        ).astype(float),
+    })
+
+    # Preserve all observations within each one-minute block.
+    data["minute"] = data.index.floor("min")
+
+    blocks = [
+        group
+        for _, group in data.groupby("minute", sort=True)
+    ]
+
+    rng = np.random.default_rng(seed)
+    differences = []
+
+    for _ in range(n_bootstrap):
+        selected = rng.integers(
+            0, len(blocks), size=len(blocks)
+        )
+
+        sample = pd.concat(
+            [blocks[i] for i in selected],
+            ignore_index=True,
+        )
+
+        improvement = (
+            sample["model_correct"].mean()
+            - sample["baseline_correct"].mean()
+        )
+
+        differences.append(improvement)
+
+    observed_difference = (
+        data["model_correct"].mean()
+        - data["baseline_correct"].mean()
+    )
+
+    ci_lower, ci_upper = np.percentile(
+        differences, [2.5, 97.5]
+    )
+
+    return {
+        "accuracy_difference": float(observed_difference),
+        "ci_lower": float(ci_lower),
+        "ci_upper": float(ci_upper),
+        "n_blocks": len(blocks),
+    }
+
+
+
+def logistic_training_diagnostics(
+    X_train: pd.DataFrame,
+    y_train: pd.Series,
+    forward_returns: pd.Series,
+) -> dict:
+    """
+    Report in-sample prediction correlation and model coefficients.
+
+    Coefficients are based on standardized features, so their
+    relative magnitudes are comparable.
+    """
+    if not (
+        X_train.index.equals(y_train.index)
+        and X_train.index.equals(forward_returns.index)
+    ):
+        raise ValueError("Training inputs must have matching indices")
+
+    model = make_pipeline(
+        StandardScaler(),
+        LogisticRegression(max_iter=1000),
+    )
+
+    model.fit(X_train, y_train)
+
+    probabilities = pd.Series(
+        model.predict_proba(X_train)[:, 1],
+        index=X_train.index,
+    )
+
+    correlation = probabilities.corr(forward_returns)
+
+    coefficients = dict(
+        zip(
+            X_train.columns,
+            model.named_steps["logisticregression"].coef_[0],
+        )
+    )
+
+    return {
+        "train_correlation": float(correlation),
+        "coefficients": coefficients,
     }
