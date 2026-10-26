@@ -1,8 +1,12 @@
-"""Reproduce Issue #8 evaluation from cached ESZ6 market data."""
+"""Reproduce the Issue #8 evaluation (08:30-08:40 CT, Sep 22-24).
+
+Run from the repository root:
+    python scripts/run_issue8.py                    # needs data/cache
+    python scripts/run_issue8.py --allow-download   # fetch missing days
+"""
 
 from pathlib import Path
-import importlib
-import importlib.util
+import argparse
 import sys
 
 import pandas as pd
@@ -12,6 +16,8 @@ CACHE = ROOT / "data" / "cache"
 sys.path.insert(0, str(ROOT / "src"))
 
 from orderflow.features import build_features
+from orderflow.labels import build_labels
+from orderflow.loader import load_es
 from orderflow.evaluation import (
     evaluate_horizons,
     split_train_test_by_day,
@@ -28,31 +34,8 @@ DAYS = ("2026-09-22", "2026-09-23", "2026-09-24")
 HORIZONS = (1, 5, 10)
 
 
-def get_function(module_name, function_name, fallback):
-    """Use the merged module, or a local copy of its pending PR."""
-    try:
-        module = importlib.import_module(f"orderflow.{module_name}")
-    except ModuleNotFoundError as exc:
-        if exc.name != f"orderflow.{module_name}":
-            raise
-        path = CACHE / fallback
-        if not path.exists():
-            raise FileNotFoundError(
-                f"Missing {path}. Merge the corresponding dependency PR first."
-            ) from exc
-        spec = importlib.util.spec_from_file_location(
-            f"issue8_{module_name}", path
-        )
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-
-    return getattr(module, function_name)
-
-
-def load_data():
+def load_data(allow_download=False):
     """Build features and labels separately for each trading day."""
-    load_es = get_function("loader", "load_es", "loader_pr14.py")
-    build_labels = get_function("labels", "build_labels", "labels_pr16.py")
 
     feature_frames = []
     label_frames = []
@@ -60,10 +43,11 @@ def load_data():
     for day in DAYS:
         cache_file = CACHE / f"ESZ6_{day}_mbp-1.parquet"
 
-        # Prevent accidental Databento downloads.
-        if not cache_file.exists():
+        # load_es checks the billable size before downloading.
+        if not cache_file.exists() and not allow_download:
             raise FileNotFoundError(
-                f"Missing {cache_file}. This runner requires cached data."
+                f"Missing {cache_file}. Pass --allow-download to fetch it "
+                "(load_es checks the billable size first)."
             )
 
         df = load_es(day, cache_dir=CACHE)
@@ -129,7 +113,11 @@ def evaluate_regression_horizons(features, labels):
 
 
 def main():
-    features, labels = load_data()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--allow-download", action="store_true",
+                        help="let load_es download days missing from data/cache")
+    args = parser.parse_args()
+    features, labels = load_data(allow_download=args.allow_download)
 
     classification = evaluate_horizons(
         features, labels, horizons=HORIZONS
