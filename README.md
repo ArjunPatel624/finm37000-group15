@@ -59,6 +59,31 @@ python -m pytest -q                               # tests
 ```
 
 `run_issue9.py` also accepts `--allow-download`. The simulation script always writes unsuffixed file names; the committed `*_full.csv` and `*_centered.csv` files were renamed by hand from those runs. The trading figure needs `results/issue9_summary_full.csv`.
+
+finm37000-group15/
+├── data/
+│   └── README.md          # Data source and cache notes
+├── notebooks/            # Reserved for exploratory notebooks
+├── src/
+│   └── orderflow/
+│       ├── loader.py       # Data loading and cleaning
+│       ├── features.py     # Order-flow features
+│       ├── labels.py       # Prediction targets
+│       ├── evaluation.py   # Logistic and Ridge models
+│       └── simulation.py   # Trading simulation and costs
+├── scripts/
+│   ├── run_issue8.py       # Model evaluation
+│   ├── run_issue9.py       # Trading simulation
+│   └── plot_final_results.py
+├── results/
+│   ├── figures/           # Saved research plots
+│   ├── issue8_*.csv       # Predictive results
+│   └── issue9_*.csv       # Trading results
+├── tests/                 # Automated tests
+├── requirements.txt
+├── pytest.ini
+└── README.md
+
 ## Team members and roles
 
 - Arjun Patel, Technical Lead: repository setup, GitHub workflow, technical coordination, order-flow features and the predictive-power evaluation (#8).
