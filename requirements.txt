@@ -10,4 +10,5 @@ pandas>=3.0.6       # features, labels, loader
 numpy>=2.5.3        # features
 pyarrow>=25.0.1     # parquet cache for the loader
 scikit-learn>=1.9.1 # logistic/ridge models in evaluation (#8, PR #18)
+matplotlib>=3.9.0   # reproducible results figures
 pytest>=9.1.1       # test suite
