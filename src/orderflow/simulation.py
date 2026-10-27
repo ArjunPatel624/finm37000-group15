@@ -149,7 +149,8 @@ def summarize_trades(trades: pd.DataFrame, fee_per_side: float = BASE_FEE_PER_SI
     breakeven_fee_per_side is the fee at which net PnL per trade is zero;
     a negative value means the strategy loses money even with free trading.
     gross_t_stat treats trades as independent, which is only roughly true
-    when trades do not overlap.
+    when trades do not overlap. gross_win_rate counts flat trades as
+    non-wins, so it can sit below 0.5 even when gross PnL is positive.
     """
     n = len(trades)
     if n == 0:

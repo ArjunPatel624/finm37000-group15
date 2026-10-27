@@ -50,6 +50,7 @@ HORIZONS = (1, 5, 10)
 QUANTILES = (0.50, 0.75, 0.90, 0.95)
 CACHE = ROOT / "data" / "cache"
 RESULTS = ROOT / "results"
+COVERAGE_TOLERANCE = pd.Timedelta(minutes=1)
 
 
 def parse_args():
@@ -71,6 +72,26 @@ def parse_args():
     return p.parse_args()
 
 
+def check_coverage(df, start, end, cache_file):
+    """Raise if the cached data does not span the requested window.
+
+    load_es always caches the full session, so this only fails for a cache
+    file made some other way, e.g. a hand-made 10-minute file.
+    """
+    if (df.empty or df.index.min() > start + COVERAGE_TOLERANCE
+            or df.index.max() < end - COVERAGE_TOLERANCE):
+        if df.empty:
+            covered = "no data"
+        else:
+            first, last = df.index.min().tz_convert(start.tz), df.index.max().tz_convert(start.tz)
+            covered = f"only {first:%H:%M:%S}-{last:%H:%M:%S} CT"
+        raise ValueError(
+            f"{cache_file.name} has {covered}, but this run needs "
+            f"{start:%H:%M}-{end:%H:%M} CT. Delete the file and rerun with "
+            "--allow-download to cache the full session."
+        )
+
+
 def build_dataset(days, window_minutes, allow_download):
     """Features, labels, and quotes, built separately for each session."""
     features, labels, quotes = [], [], []
@@ -86,6 +107,7 @@ def build_dataset(days, window_minutes, allow_download):
         df = load_es(day, cache_dir=CACHE)
         if window_minutes:
             end = min(end, start + pd.Timedelta(minutes=window_minutes))
+        check_coverage(df, start, end, cache_file)
         df = df.loc[(df.index >= start) & (df.index < end)]
         if df.empty:
             raise ValueError(f"No observations for {day} in the chosen window")
