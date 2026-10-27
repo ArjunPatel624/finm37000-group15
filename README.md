@@ -63,4 +63,4 @@ python -m pytest -q                               # tests
 
 - Arjun Patel, Technical Lead: repository setup, GitHub workflow, technical coordination, order-flow features and the predictive-power evaluation (#8).
 - Alexei Le, Design Lead: research design and scope, requirements and data access, the data loader and processing pipeline, and this report.
-- Jean-Luc, Research and Simulation Lead: labels, the cost-aware trading simulation, strategy profitability and transaction costs (#9).
+- Jean-Luc Choiseul, Research and Simulation Lead: labels, the cost-aware trading simulation, strategy profitability and transaction costs (#9).
