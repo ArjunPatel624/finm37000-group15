@@ -60,6 +60,9 @@ python -m pytest -q                               # tests
 
 `run_issue9.py` also accepts `--allow-download`. The simulation script always writes unsuffixed file names; the committed `*_full.csv` and `*_centered.csv` files were renamed by hand from those runs. The trading figure needs `results/issue9_summary_full.csv`.
 
+## Repository Structure
+
+```text
 finm37000-group15/
 ├── data/
 │   └── README.md          # Data source and cache notes
@@ -83,7 +86,7 @@ finm37000-group15/
 ├── requirements.txt
 ├── pytest.ini
 └── README.md
-
+```
 ## Team members and roles
 
 - Arjun Patel, Technical Lead: repository setup, GitHub workflow, technical coordination, order-flow features and the predictive-power evaluation (#8).
