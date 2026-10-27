@@ -4,7 +4,7 @@ FINM 37000 Group 15: Arjun Patel, Jean-Luc Choiseul, Alexei Le.
 
 ## Result
 
-Order flow in E-mini S&P 500 futures (ESZ6) carries a small, real signal about the next second of price movement, but it is too small to trade. Before costs the signal earns between $0.82 and $4.56 per trade, depending on horizon and threshold. Crossing the bid-ask spread costs about $12.70 per round trip (one tick), plus $2.00 in fees, so every threshold and horizon that traded lost money. It still loses money with zero fees: the least bad case loses $8.20 per trade.
+Order flow in E-mini S&P 500 futures (ESZ6) shows modest short-horizon predictive information about the next second of price movement, but it is too small to trade. Before costs the signal earns between $0.82 and $4.56 per trade, depending on horizon and threshold. Crossing the bid-ask spread costs about $12.70 per round trip (one tick), plus $2.00 in fees, so every threshold and horizon that traded lost money. It still loses money with zero fees: the least bad case loses $8.20 per trade.
 
 Full 08:30 to 15:00 CT session of Sep 24, model trained on Sep 22 and 23, one position at a time, $1.00 fee per side, threshold q50:
 
@@ -59,3 +59,8 @@ python -m pytest -q                               # tests
 ```
 
 `run_issue9.py` also accepts `--allow-download`. The simulation script always writes unsuffixed file names; the committed `*_full.csv` and `*_centered.csv` files were renamed by hand from those runs. The trading figure needs `results/issue9_summary_full.csv`.
+## Team members and roles
+
+- Arjun Patel, Technical Lead: repository setup, GitHub workflow, technical coordination, order-flow features and the predictive-power evaluation (#8).
+- Alexei Le, Design Lead: research design and scope, requirements and data access, the data loader and processing pipeline, and this report.
+- Jean-Luc, Research and Simulation Lead: labels, the cost-aware trading simulation, strategy profitability and transaction costs (#9).
