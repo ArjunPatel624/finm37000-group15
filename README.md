@@ -15,6 +15,12 @@ Using top-of-book data for the ESZ6 contract, we will:
 
 The issues build on each other in this order: setup and data access (#1–#3) → scope (#4) → data loader (#5) → features and labels (#6, #7) → evaluation (#8) → trading simulation (#9) → results and write-up (#10), with an optional regime breakdown (#11).
 
+## Team Members & Roles
+
+- **Arjun Patel — Technical Lead:** Responsible for the repository setup, GitHub workflow, technical coordination, and implementation of order-flow features.
+- **Alexie Le — Design Lead:** Responsible for the project's research design, data-processing pipeline, and predictive-model evaluation.
+- **Jean-Luc — Research & Simulation Lead:** Responsible for developing the cost-aware trading simulation, evaluating strategy profitability, and analyzing transaction costs.
+
 ## Scope
 
 The scope is proposed in #4 and is final once agreed there.
